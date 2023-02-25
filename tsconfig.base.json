@@ -1,0 +1,20 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "sourceMap": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "module": "ES6",
+    "target": "ES6",
+    "importHelpers": true,
+    "paths": {
+      "@rxtp/core": ["packages/core/src/index.ts"],
+      "@rxtp/platform-node": ["packages/platform-node/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
