@@ -1,0 +1,30 @@
+{
+  "name": "rxtp",
+  "description": "Reactive HTTP framework, optimised for serverless and built with Typescript.",
+  "version": "0.0.0",
+  "engines": {
+    "node": "^14.20.0 || ^16.13.0 || >=18.10.0",
+    "npm": "^6.11.0 || ^7.5.6 || >=8.0.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "17.4.4",
+    "@commitlint/config-conventional": "17.4.4",
+    "@nrwl/eslint-plugin-nx": "15.9.2",
+    "@nrwl/js": "15.9.2",
+    "@nrwl/linter": "15.9.2",
+    "@nrwl/node": "15.9.2",
+    "@types/node": "18.15.11",
+    "@typescript-eslint/eslint-plugin": "5.57.0",
+    "@typescript-eslint/parser": "5.57.0",
+    "eslint": "8.37.0",
+    "eslint-config-prettier": "8.8.0",
+    "eslint-plugin-tsdoc": "0.2.17",
+    "nx": "15.9.2",
+    "prettier": "2.8.7",
+    "typescript": "5.0.4"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0"
+  }
+}
