@@ -1,0 +1,10 @@
+{
+  "root": true,
+  "ignorePatterns": ["**/*"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@nx", "@typescript-eslint", "eslint-plugin-tsdoc"],
+  "extends": ["plugin:@typescript-eslint/recommended"],
+  "rules": {
+    "tsdoc/syntax": "warn"
+  }
+}
