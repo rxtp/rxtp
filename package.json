@@ -19,7 +19,7 @@
     "eslint": "8.37.0",
     "eslint-config-prettier": "8.8.0",
     "eslint-plugin-tsdoc": "0.2.17",
-    "nx": "15.9.2",
+    "nx": "16.2.2",
     "prettier": "2.8.7",
     "typescript": "5.0.4"
   },
