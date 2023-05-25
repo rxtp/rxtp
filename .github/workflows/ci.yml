@@ -16,6 +16,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+          registry-url: https://npm.pkg.github.com/rxtp
+          scope: @rxtp
       - uses: nrwl/nx-set-shas@v3
       - run: npm ci
       - run: npx nx workspace-lint
