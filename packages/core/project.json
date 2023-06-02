@@ -19,6 +19,10 @@
         "packageJson": "packages/core/package.json"
       },
       "dependsOn": ["lint"]
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs core {args.ver} {args.tag}",
+      "dependsOn": ["build"]
     }
   }
 }
