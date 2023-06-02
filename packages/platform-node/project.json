@@ -25,6 +25,10 @@
           "projects": "dependencies"
         }
       ]
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs platform-node {args.ver} {args.tag}",
+      "dependsOn": ["build"]
     }
   },
   "implicitDependencies": ["core"]
