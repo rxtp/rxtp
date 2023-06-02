@@ -33,6 +33,8 @@ invariant(
   `Could not find "build.options.outputPath" of project "${name}". Is project.json configured  correctly?`
 );
 
+execSync(`cp .npmrc ${outputPath}`);
+
 process.chdir(outputPath);
 
 try {
