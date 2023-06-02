@@ -1,7 +1,8 @@
 import { execSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import chalk from 'chalk';
-import { readCachedProjectGraph } from '@nx/devkit';
+import pkg from '@nx/devkit';
+const { readCachedProjectGraph } = pkg;
 
 function invariant(condition, message) {
   if (!condition) {
@@ -44,4 +45,6 @@ try {
   );
 }
 
-execSync(`npm publish --@rxtp:registry=https://npm.pkg.github.com/rxtp --access public --tag ${tag}`);
+execSync(
+  `npm publish --@rxtp:registry=https://npm.pkg.github.com/rxtp --access public --tag ${tag}`
+);
