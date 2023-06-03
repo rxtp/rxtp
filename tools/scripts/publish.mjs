@@ -11,12 +11,18 @@ function invariant(condition, message) {
   }
 }
 
-const [, , name, version, tag = 'next'] = process.argv;
+const [, , name, version, registry] = process.argv;
 
 const validVersion = /^\d+\.\d+\.\d+(-\w+\.\d+)?/;
 invariant(
   version && validVersion.test(version),
   `No version provided or version did not match Semantic Versioning, expected: #.#.#-tag.# or #.#.#, got ${version}.`
+);
+
+const validRegistry = /^https?:\/\/.+$/;
+invariant(
+  registry && validRegistry.test(registry),
+  `No registry provided or registry did not match URL, expected: http(s)://..., got ${registry}.`
 );
 
 const graph = readCachedProjectGraph();
@@ -33,8 +39,6 @@ invariant(
   `Could not find "build.options.outputPath" of project "${name}". Is project.json configured  correctly?`
 );
 
-execSync(`cp .npmrc ${outputPath}`);
-
 process.chdir(outputPath);
 
 try {
@@ -47,6 +51,4 @@ try {
   );
 }
 
-execSync(
-  `npm publish --@rxtp:registry=https://npm.pkg.github.com/rxtp --access public --tag ${tag}`
-);
+execSync(`npm publish --@rxtp:registry=${registry} --access public --tag latest`);
