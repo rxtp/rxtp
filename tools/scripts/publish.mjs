@@ -11,7 +11,12 @@ function invariant(condition, message) {
   }
 }
 
-const [, , name, version, registry] = process.argv;
+const [, , name, version, registry, ci] = process.argv;
+
+invariant(
+  ci === 'true',
+  `This script is only meant to be run in CI, got ${ci}.`
+);
 
 const validVersion = /^\d+\.\d+\.\d+(-\w+\.\d+)?/;
 invariant(

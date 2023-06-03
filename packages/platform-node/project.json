@@ -27,7 +27,7 @@
       ]
     },
     "publish": {
-      "command": "node tools/scripts/publish.mjs platform-node {args.ver} {args.registry}",
+      "command": "node tools/scripts/publish.mjs platform-node {args.ver} {args.registry} $CI",
       "dependsOn": ["build"]
     }
   },
