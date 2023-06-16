@@ -1,24 +1,25 @@
+#! / usr / bin / env node
+
+/**
+ * Publish a package to npm.
+ *
+ * Usage:
+ *
+ * ```sh
+ * node tools/scripts/publish.mjs <project-name> <registry>
+ * ```
+ */
+
 import { execSync } from 'child_process';
-import chalk from 'chalk';
-import pkg from '@nx/devkit';
+import { invariant } from './invariant.mjs';
 const { readCachedProjectGraph } = pkg;
+import pkg from '@nx/devkit';
 
-function invariant(condition, message) {
-  if (!condition) {
-    console.error(chalk.bold.red(message));
-    process.exit(1);
-  }
-}
-
-const [, , name] = process.argv;
+let [, , name, registry] = process.argv;
 
 const graph = readCachedProjectGraph();
 const project = graph.nodes[name];
-
-invariant(
-  project,
-  `Could not find project "${name}" in the workspace. Is the project.json configured correctly?`
-);
+invariant(project, `Could not find project "${name}" in the workspace.`);
 
 const outputPath = project.data?.targets?.build?.options?.outputPath;
 invariant(
@@ -26,24 +27,9 @@ invariant(
   `Could not find "build.options.outputPath" of project "${name}".`
 );
 
+invariant(registry, `Provide a registry to publish to.`);
+
 process.chdir(outputPath);
-
-execSync('npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN');
-execSync('npm config set //npm.pkg.github.com/rxtp/:_authToken $GITHUB_TOKEN');
-
-execSync('npm whoami', { stdio: 'inherit' });
-execSync('npm config ls -l', { stdio: 'inherit' });
-
-execSync('npm publish --access public --registry https://registry.npmjs.org', {
+execSync(`npm publish --access public --registry ${registry}`, {
   stdio: 'inherit',
 });
-
-execSync('npm whoami', { stdio: 'inherit' });
-execSync('npm config ls -l', { stdio: 'inherit' });
-
-execSync(
-  'npm publish --access public --registry https://npm.pkg.github.com/rxtp',
-  {
-    stdio: 'inherit',
-  }
-);
