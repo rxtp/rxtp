@@ -10,18 +10,7 @@ function invariant(condition, message) {
   }
 }
 
-const [, , name, registry, ci] = process.argv;
-
-invariant(
-  ci === 'true',
-  `This script is only meant to be run in CI, got ${ci}.`
-);
-
-const validRegistry = /^https?:\/\/.+$/;
-invariant(
-  registry && validRegistry.test(registry),
-  `No registry provided or registry did not match URL, expected: http(s)://..., got ${registry}.`
-);
+const [, , name] = process.argv;
 
 const graph = readCachedProjectGraph();
 const project = graph.nodes[name];
@@ -34,9 +23,27 @@ invariant(
 const outputPath = project.data?.targets?.build?.options?.outputPath;
 invariant(
   outputPath,
-  `Could not find "build.options.outputPath" of project "${name}". Is project.json configured  correctly?`
+  `Could not find "build.options.outputPath" of project "${name}".`
 );
 
 process.chdir(outputPath);
 
-execSync(`npm publish --@rxtp:registry=${registry} --access public --tag latest`);
+execSync('npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN');
+execSync('npm config set //npm.pkg.github.com/rxtp/:_authToken $GITHUB_TOKEN');
+
+execSync('npm whoami', { stdio: 'inherit' });
+execSync('npm config ls -l', { stdio: 'inherit' });
+
+execSync('npm publish --access public --registry https://registry.npmjs.org', {
+  stdio: 'inherit',
+});
+
+execSync('npm whoami', { stdio: 'inherit' });
+execSync('npm config ls -l', { stdio: 'inherit' });
+
+execSync(
+  'npm publish --access public --registry https://npm.pkg.github.com/rxtp',
+  {
+    stdio: 'inherit',
+  }
+);

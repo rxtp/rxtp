@@ -21,7 +21,7 @@
       "dependsOn": ["lint"]
     },
     "publish": {
-      "command": "node tools/scripts/publish.mjs core {args.registry} $CI",
+      "command": "node tools/scripts/publish.mjs core",
       "dependsOn": ["build"]
     }
   }
