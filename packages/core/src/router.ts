@@ -171,7 +171,7 @@ export function routeMessage(
             return [message, route];
           }
         }
-        return [message, [undefined, [], this.injector]];
+        return [message, [undefined, [], injector]];
       })
     );
   };
