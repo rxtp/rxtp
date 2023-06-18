@@ -22,30 +22,6 @@ export class Message implements CoreMessage<IncomingMessage, ServerResponse> {
     return new Message(request, response);
   }
 
-  respond(
-    data?: unknown,
-    statusCode?: HttpStatusCode,
-    headers?: Record<string, string | string[]>
-  ): void {
-    if (!this.response.writableEnded) {
-      if (statusCode) {
-        this.statusCode = statusCode;
-      }
-      if (headers) {
-        this.headers = headers;
-      }
-      if (data) {
-        if (typeof data === 'object') {
-          data = JSON.stringify(data);
-          this.response.write(data);
-        } else {
-          this.response.write(data);
-        }
-      }
-      this.response.end();
-    }
-  }
-
   get statusCode(): HttpStatusCode {
     return this.response.statusCode as HttpStatusCode;
   }
@@ -90,5 +66,39 @@ export class Message implements CoreMessage<IncomingMessage, ServerResponse> {
 
   set body(body: unknown) {
     this._body = body;
+  }
+
+  respond(
+    data?: unknown,
+    statusCode?: HttpStatusCode,
+    headers?: Record<string, string | string[]>
+  ): void {
+    if (!this.response.writableEnded || !this.response.writableFinished) {
+      if (!this.response.headersSent) {
+        statusCode ? (this.statusCode = statusCode) : (this.statusCode = 200);
+        headers ? (this.headers = headers) : (this.headers = {});
+      }
+      if (data === undefined) {
+        this.response.end();
+        return;
+      }
+      if (typeof data === 'string') {
+        this.response.setHeader('Content-Type', 'text/plain');
+        this.response.end(data);
+        return;
+      }
+      if (typeof data === 'object') {
+        this.response.setHeader('Content-Type', 'application/json');
+        this.response.end(JSON.stringify(data));
+        return;
+      }
+      if (data instanceof Buffer) {
+        this.response.setHeader('Content-Type', 'application/octet-stream');
+        this.response.end(data);
+        return;
+      }
+      this.response.end();
+      return;
+    }
   }
 }
