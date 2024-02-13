@@ -1,15 +1,12 @@
 import {
   ErrorHandler,
   Finalizer,
-  Injectable,
-  Middleware,
   Platform,
   PLATFORM_ID,
   PlatformID,
   Providers,
   Redirector,
   Route,
-  ROUTES,
 } from '@rxtp/core';
 import { Message } from './message.js';
 import { NodeRedirector } from './redirector.js';
@@ -30,11 +27,11 @@ export function createRequestListener(
   routes: Route[],
   providers: Providers = []
 ): RequestListener {
-  const platformNode = Platform.createPlatform([
+  const platformNode = Platform.createPlatform(routes, [
     ...PLATFORM_NODE_PROVIDERS,
-    { provide: ROUTES, useValue: routes },
     ...providers,
   ]);
+
   platformNode.message$.subscribe();
   return (request: IncomingMessage, response: ServerResponse) => {
     const httpRequest = Message.createNodeMessage(request, response);

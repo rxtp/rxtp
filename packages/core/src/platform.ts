@@ -3,7 +3,8 @@ import { Message } from './message.js';
 import { InjectionToken, Injector } from './injector.js';
 import { handleError } from './error.js';
 import { finalizeMessage } from './finalizer.js';
-import { routeMessage } from './router.js';
+import { Routes } from './types/router.js';
+import { Router } from './router.js';
 import { runMiddlewares } from './middleware.js';
 import { redirectMessage } from './redirector.js';
 import { handleMessage } from './handler.js';
@@ -20,7 +21,7 @@ export class Platform {
   readonly message$ = this.message.asObservable().pipe(
     mergeMap((message) =>
       of(message).pipe(
-        routeMessage(this._injector),
+        this._router.routeMessage(),
         mergeMap(([message, [route, middlewares, injector]]) =>
           iif(
             () => isDefined(route),
@@ -42,10 +43,14 @@ export class Platform {
     )
   );
 
-  constructor(private readonly _injector: Injector) {}
+  constructor(
+    private readonly _injector: Injector,
+    private readonly _router: Router
+  ) {}
 
-  public static createPlatform(providers: Providers) {
+  public static createPlatform(routes: Routes, providers: Providers) {
     const injector = Injector.createPlatformInjector(providers);
-    return new Platform(injector);
+    const router = Router.createPlatformRouter(routes, injector);
+    return new Platform(injector, router);
   }
 }

@@ -53,38 +53,13 @@ export function Injectable(configuration?: InjectableMetadata): ClassDecorator {
 }
 
 export class Injector {
-  /**
-   * The underlying map of `ConfigurableProvider`s that this `Injector` uses to
-   * resolve dependencies. This map is populated with the providers passed to
-   * the constructor.
-   *
-   * @private
-   */
+  private readonly _instances = new Map<Token<unknown>, unknown>();
   private readonly _providers = new Map<
     Token<unknown>,
     ConfigurableProvider<unknown>
   >();
 
-  /**
-   * The underlying map of instances that this `Injector` uses to store
-   * `Lifecycle.Singleton` instances. This map is populated when a singleton
-   * instance is resolved.
-   *
-   * @private
-   */
-  private readonly _instances = new Map<Token<unknown>, unknown>();
-
-  /**
-   * Registers the given `Providers` with this `Injector` by adding them to the
-   * underlying `_providers` map. If a provider is already registered with the
-   * same token, it will be overwritten. A `Provider` that is a `Token` will be
-   * registered as a `ClassProvider` with the token as the `provide` and
-   * `useClass` properties.
-   *
-   * @param providers The `Providers` to register with this `Injector`.
-   * @private
-   */
-  private _registerProviders<T>(providers: Providers): void {
+  private _registerProviders(providers: Providers): void {
     for (const provider of providers) {
       if (isConfigurableProvider(provider)) {
         this._providers.set(provider.provide, provider);

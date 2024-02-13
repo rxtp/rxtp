@@ -1,4 +1,4 @@
-import { Middlewares } from './types/middleware.js';
+import { MiddlewareLifecycle, Middlewares } from './types/middleware.js';
 import { isDefined } from './utilities/check.js';
 import { Message } from './message.js';
 import { Injector } from './injector.js';
@@ -10,7 +10,7 @@ export abstract class Middleware {
 }
 
 export function runMiddlewares(
-  lifecycle: keyof Middleware,
+  lifecycle: MiddlewareLifecycle,
   middlewares: Middlewares,
   injector: Injector
 ): OperatorFunction<Message, Message> {

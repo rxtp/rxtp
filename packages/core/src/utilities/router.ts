@@ -1,18 +1,5 @@
-import {
-  Route,
-  ParentRoute,
-  HandlerRoute,
-  RedirectRoute,
-} from '../types/router.js';
-import { isArray, isDefined, isFunction, isObject, isString } from './check.js';
-
-export function isParentRoute(route: Route): route is ParentRoute {
-  return (
-    isObject(route) &&
-    isDefined(route['children']) &&
-    isArray(route['children'])
-  );
-}
+import { Route, HandlerRoute, RedirectRoute } from '../types/router.js';
+import { isDefined, isFunction, isObject, isString } from './check.js';
 
 export function isHandlerRoute(route: Route): route is HandlerRoute {
   return (
