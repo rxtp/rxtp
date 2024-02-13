@@ -19,10 +19,6 @@
         "packageJson": "packages/core/package.json"
       },
       "dependsOn": ["lint"]
-    },
-    "publish": {
-      "command": "node tools/scripts/publish.mjs core {args.registry}",
-      "dependsOn": ["build"]
     }
   }
 }
