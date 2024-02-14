@@ -2,3 +2,4 @@ dist
 tmp
 /out-tsc
 node_modules
+result
