@@ -52,35 +52,20 @@
           ln -s ${src + "/package-lock.json"} $out/package-lock.json
         '';
         buildInputs = [node];
-        outputs = ["out" "dev"];
+        outputs = ["out"];
         buildPhase = ''
           export HOME=$PWD
           npm ci --ignore-scripts
-          mv node_modules $dev
-          npm ci --ignore-scripts --omit=dev
           mv node_modules $out
           chmod -R +w $out
-          chmod -R +w $dev
-        '';
-      };
-
-      copy_node_modules = pkgs.writeShellApplication rec {
-        name = "copy-node_modules";
-        runtimeInputs = with pkgs; [node];
-        text = ''
-          rm -fR node_modules
-          cp -r ${node_modules.dev} node_modules
-          chmod -R +w node_modules
-          export PATH=$PATH:$PWD/node_modules/.bin
         '';
       };
     in {
       packages.default = pkgs.stdenv.mkDerivation {
         inherit (package-lock) name version;
         inherit src;
-        buildInputs = [node];
+        buildInputs = [node node_modules];
         buildPhase = ''
-          export HOME=$PWD/.home
           ln -s ${node_modules.out} node_modules
           export PATH=$PATH:$PWD/node_modules/.bin
           npx nx run-many --target=build
@@ -94,9 +79,6 @@
 
       devShells.default = pkgs.mkShell rec {
         buildInputs = with pkgs; [node];
-        shellHook = ''
-          export PATH=$PATH:$PWD/node_modules/.bin
-        '';
       };
     });
 }

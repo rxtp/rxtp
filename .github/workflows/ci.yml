@@ -2,27 +2,17 @@ name: Continuous Integration
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  main:
+  checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v3
-        with:
-          node-version: lts/*
-          registry-url: https://npm.pkg.github.com/rxtp
-          scope: '@rxtp'
-      - uses: nrwl/nx-set-shas@v3
-      - run: npm ci
-      - run: npx nx format:check --verbose
-      - run: npx nx run-many --target=lint --parallel=3
-      - run: npx nx run-many --target=build --parallel=3
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: DeterminateSystems/flake-checker-action@main
+      - run: nix build
