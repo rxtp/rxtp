@@ -1,11 +1,13 @@
 # RXTP
 
-> **Warning**
+> [!WARNING]
 > Work in progress - not ready for production
 
-Platform-agnostic, reactive HTTP framework, optimized for serverless and build with Typescript
+```ocaml
+Build With Nix
+```
 
-## Example Application
+#### Example Application
 
 ```typescript
 import 'reflect-metadata';
@@ -42,7 +44,7 @@ server.listen(3000);
 }
 ```
 
-## Packages
+#### Packages
 
-- `@rxtp/core`: The core platform-agnostic framework with reactive HTTP request/response handling and routing capabilities.
-- `@rxtp/platform-node`: Node.js platform adapter.
+- **@rxtp/core** The core platform-agnostic framework.
+- **@rxtp/platform-node** Node.js platform adapter.
