@@ -1,61 +1,34 @@
 {
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-  inputs.noxide.url = "github:dominicegginton/noxide";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-  outputs = {
-    self,
-    nixpkgs,
-    noxide,
-  }: let
-    supportedSystems = ["x86_64-linux" "i686-linux" "x86_64-darwin"];
+  outputs = { nixpkgs, ... }:
 
-    forAllSystems = f:
-      nixpkgs.lib.genAttrs supportedSystems (system: f system);
+    let
+      platforms = nixpkgs.lib.platforms // { supported = [ "aarch64-linux" "aarch64-darwin" "x86_64-darwin" "x86_64-linux" ]; };
+      eachPlatformMerge = op: platforms: f: builtins.foldl' (op f) { } (if !builtins ? currentSystem || builtins.elem builtins.currentSystem platforms then platforms else platforms ++ [ builtins.currentSystem ]);
+      eachPlatform = eachPlatformMerge (f: attrs: platform: let ret = f platform; in builtins.foldl' (attrs: key: attrs // { ${key} = (attrs.${key} or { }) // { ${platform} = ret.${key}; }; }) attrs (builtins.attrNames ret));
+      eachSupportedPlatform = eachPlatform platforms.supported;
+    in
 
-    nixpkgsFor = forAllSystems (system:
-      import nixpkgs {
-        inherit system;
-        overlays = [
-          self.overlays.default
-          noxide.overlays.default
-        ];
-      });
-
-    node = forAllSystems (system: nixpkgsFor.${system}.nodejs_20);
-  in {
-    formatter = forAllSystems (
-      system:
-        nixpkgsFor.${system}.alejandra
-    );
-
-    overlays = {
-      default = final: prev: {
-        rxtp = noxide.legacyPackages.${final.system}.buildPackage ./. {
-          nodejs = node.${final.system};
-
-          npmCommands = [
-            # ignore scripts due to @parcel/watcher postinstall script error
-            "npm install --no-audit --no-fund --ignore-scripts"
-            "npx nx run-many --target build"
+    eachSupportedPlatform (platform:
+      let
+        pkgs = import nixpkgs {
+          system = platform;
+          overlays = [
+            (final: prev: {
+              nodePackages = prev.nodePackages // {
+                rxtp = {
+                  core = final.callPackage ./packages/core { };
+                  platform-node = final.callPackage ./packages/platform-node { };
+                };
+              };
+            })
           ];
-
-          installPhase = ''
-            mkdir -p $out
-            mv dist/packages/* $out
-          '';
         };
-      };
-    };
+      in
 
-    packages = forAllSystems (system: {
-      inherit (nixpkgsFor.${system}) rxtp;
-      default = nixpkgsFor.${system}.rxtp;
-    });
-
-    devShells = forAllSystems (system: {
-      default = nixpkgsFor.${system}.mkShell {
-        buildInputs = with nixpkgsFor.${system}; [node.${system}];
-      };
-    });
-  };
+      {
+        formatter = pkgs.nixpkgs-fmt;
+        packages = pkgs;
+      });
 }
