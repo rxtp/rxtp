@@ -15,5 +15,5 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - uses: DeterminateSystems/flake-checker-action@main
-      - run: nix build .#nodePackages.rxtp.core
-      - run: nix build .#nodePackages.rxtp.platform-node
+      - run: nix build .#nodePackages.rxtp-core
+      - run: nix build .#nodePackages.rxtp-platform-node

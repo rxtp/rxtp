@@ -17,10 +17,8 @@
           overlays = [
             (final: prev: {
               nodePackages = prev.nodePackages // {
-                rxtp = {
-                  core = final.callPackage ./packages/core { };
-                  platform-node = final.callPackage ./packages/platform-node { };
-                };
+                rxtp-core = final.callPackage ./packages/core { };
+                rxtp-platform-node = final.callPackage ./packages/platform-node { };
               };
             })
           ];

@@ -1,8 +1,21 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "compileOnSave": false,
   "compilerOptions": {
-    "outDir": "../../dist/out-tsc",
-    "types": ["node"]
+    "rootDir": ".",
+    "baseUrl": ".",
+    "sourceMap": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "module": "ES6",
+    "target": "ES6",
+    "types": ["node"],
+    "lib": ["ESNext", "DOM"],
+    "paths": {
+      "@rxtp/core": ["../core/src"],
+    },
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src"],
+  "exclude": ["node_modules", "tmp", "../core/*"],
 }

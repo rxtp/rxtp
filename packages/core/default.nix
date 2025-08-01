@@ -1,8 +1,4 @@
-{ lib
-, buildNpmPackage
-, importNpmLock
-,
-}:
+{ lib, buildNpmPackage, importNpmLock }:
 
 let
   packageJSON = lib.importJSON ./package.json;
@@ -16,8 +12,4 @@ buildNpmPackage rec {
   npmDeps = importNpmLock {
     npmRoot = src;
   };
-  installPhase = ''
-    mkdir -p $out
-    cp -r build/* $out
-  '';
 }
