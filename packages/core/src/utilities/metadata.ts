@@ -1,10 +1,10 @@
-import { isDefined, isFunction } from './check.js';
+import { isDefined, isFunction } from "./check.js";
 
-export const PARAM_TYPES_METADATA_KEY = 'design:paramtypes';
+export const PARAM_TYPES_METADATA_KEY = "design:paramtypes";
 
-export const INJECTABLE_METADATA_KEY = 'rxtp:injectable';
+export const INJECTABLE_METADATA_KEY = "rxtp:injectable";
 
-export const INJECT_METADATA_KEY = 'rxtp:inject';
+export const INJECT_METADATA_KEY = "rxtp:inject";
 
 function reflectApiExists(): boolean {
   return (

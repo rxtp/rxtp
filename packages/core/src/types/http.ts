@@ -1,13 +1,13 @@
 export enum HttpMethod {
-  Connect = 'CONNECT',
-  Delete = 'DELETE',
-  Get = 'GET',
-  Head = 'HEAD',
-  Options = 'OPTIONS',
-  Patch = 'PATCH',
-  Post = 'POST',
-  Put = 'PUT',
-  Trace = 'TRACE',
+  Connect = "CONNECT",
+  Delete = "DELETE",
+  Get = "GET",
+  Head = "HEAD",
+  Options = "OPTIONS",
+  Patch = "PATCH",
+  Post = "POST",
+  Put = "PUT",
+  Trace = "TRACE",
 }
 
 export type HttpMethods = HttpMethod[];

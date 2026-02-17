@@ -10,18 +10,20 @@ const RESPONSE_HEADERS: HttpHeaders = {
 };
 
 @Injectable()
-export class NodeFinalizer implements Finalizer {
+export class AzureFinalizer implements Finalizer {
   finalize(httpRequest$: Observable<Message>): Observable<Message> {
     return httpRequest$.pipe(
       tap((httpRequest) => {
-        if (!httpRequest.response.writableEnded) {
-          for (const [key, value] of Object.entries(RESPONSE_HEADERS)) {
-            httpRequest.response.setHeader(key, value);
-          }
+        const ctxRes =
+          (httpRequest as any).context?.res || (httpRequest as any).response;
+        if (ctxRes && (ctxRes.body === undefined || ctxRes.body === null)) {
+          ctxRes.headers = {
+            ...(ctxRes.headers || {}),
+            ...RESPONSE_HEADERS,
+          } as any;
           const response =
-            httpRequest.request.method === "HEAD" ? "" : RESPONSE;
-          httpRequest.response.write(response);
-          httpRequest.response.end();
+            (httpRequest as any).method === "HEAD" ? "" : RESPONSE;
+          ctxRes.body = response;
         }
       }),
     );

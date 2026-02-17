@@ -1,6 +1,6 @@
-import { ErrorHandler, HttpStatusCode, Injectable } from '@rxtp/core';
-import { Message } from './message.js';
-import { map, Observable } from 'rxjs';
+import { ErrorHandler, HttpStatusCode, Injectable } from "@rxtp/core";
+import { Message } from "./message.js";
+import { map, Observable } from "rxjs";
 
 @Injectable()
 export class NodeErrorHandler implements ErrorHandler {
@@ -11,7 +11,7 @@ export class NodeErrorHandler implements ErrorHandler {
           message.respond(error.message, HttpStatusCode.InternalServerError);
         }
         return message;
-      })
+      }),
     );
   }
 }

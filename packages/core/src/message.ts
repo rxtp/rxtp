@@ -1,5 +1,5 @@
-import { HttpHeaders, HttpMethod, HttpStatusCode } from './types/http.js';
-import { Params } from './types/router.js';
+import { HttpHeaders, HttpMethod, HttpStatusCode } from "./types/http.js";
+import { Params } from "./types/router.js";
 
 export abstract class Message<Request = unknown, Response = unknown> {
   abstract readonly request: Request;
@@ -25,6 +25,6 @@ export abstract class Message<Request = unknown, Response = unknown> {
   abstract respond(
     data?: unknown,
     statusCode?: HttpStatusCode,
-    headers?: HttpHeaders
+    headers?: HttpHeaders,
   ): void;
 }

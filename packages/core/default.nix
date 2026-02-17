@@ -1,4 +1,8 @@
-{ lib, buildNpmPackage, importNpmLock }:
+{
+  lib,
+  buildNpmPackage,
+  importNpmLock,
+}:
 
 let
   packageJSON = lib.importJSON ./package.json;

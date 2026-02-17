@@ -3,8 +3,8 @@ import {
   HttpStatusCode,
   Params,
   HttpMethod,
-} from '@rxtp/core';
-import { IncomingMessage, ServerResponse } from 'http';
+} from "@rxtp/core";
+import { IncomingMessage, ServerResponse } from "http";
 
 export class Message implements CoreMessage<IncomingMessage, ServerResponse> {
   private _params: Params = {};
@@ -12,12 +12,12 @@ export class Message implements CoreMessage<IncomingMessage, ServerResponse> {
 
   constructor(
     readonly request: IncomingMessage,
-    readonly response: ServerResponse
+    readonly response: ServerResponse,
   ) {}
 
   static createNodeMessage(
     request: IncomingMessage,
-    response: ServerResponse
+    response: ServerResponse,
   ): Message {
     return new Message(request, response);
   }
@@ -31,7 +31,7 @@ export class Message implements CoreMessage<IncomingMessage, ServerResponse> {
   }
 
   get url(): URL {
-    return new URL(this.request.url, 'http://localhost');
+    return new URL(this.request.url, "http://localhost");
   }
 
   get headers(): Record<string, string | string[]> {
@@ -71,7 +71,7 @@ export class Message implements CoreMessage<IncomingMessage, ServerResponse> {
   respond(
     data?: unknown,
     statusCode?: HttpStatusCode,
-    headers?: Record<string, string | string[]>
+    headers?: Record<string, string | string[]>,
   ): void {
     if (!this.response.writableEnded || !this.response.writableFinished) {
       if (!this.response.headersSent) {
@@ -82,18 +82,18 @@ export class Message implements CoreMessage<IncomingMessage, ServerResponse> {
         this.response.end();
         return;
       }
-      if (typeof data === 'string') {
-        this.response.setHeader('Content-Type', 'text/plain');
+      if (typeof data === "string") {
+        this.response.setHeader("Content-Type", "text/plain");
         this.response.end(data);
         return;
       }
-      if (typeof data === 'object') {
-        this.response.setHeader('Content-Type', 'application/json');
+      if (typeof data === "object") {
+        this.response.setHeader("Content-Type", "application/json");
         this.response.end(JSON.stringify(data));
         return;
       }
       if (data instanceof Buffer) {
-        this.response.setHeader('Content-Type', 'application/octet-stream');
+        this.response.setHeader("Content-Type", "application/octet-stream");
         this.response.end(data);
         return;
       }

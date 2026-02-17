@@ -2,7 +2,7 @@
   lib,
   buildNpmPackage,
   importNpmLock,
-  nodePackages,
+  azure-functions-core-tools,
 }:
 
 let
@@ -17,4 +17,6 @@ buildNpmPackage rec {
   npmDeps = importNpmLock {
     npmRoot = src;
   };
+
+  packages = [ azure-functions-core-tools ];
 }

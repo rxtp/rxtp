@@ -1,4 +1,4 @@
-import { InjectionToken } from '../injector.js';
+import { InjectionToken } from "../injector.js";
 
 export interface Type<T> extends Function {
   new (...args: unknown[]): T;

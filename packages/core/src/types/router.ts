@@ -1,9 +1,9 @@
-import { HttpMethods } from './http.js';
-import { Providers, Type } from './injector.js';
-import { Middlewares } from './middleware.js';
-import { Handler } from '../handler.js';
-import { Injector } from '../injector.js';
-import { Message } from '../message.js';
+import { HttpMethods } from "./http.js";
+import { Providers, Type } from "./injector.js";
+import { Middlewares } from "./middleware.js";
+import { Handler } from "../handler.js";
+import { Injector } from "../injector.js";
+import { Message } from "../message.js";
 
 export type Path = string;
 
@@ -29,7 +29,7 @@ export type Routes = Route[];
 export type RegisteredRoute = [
   HandlerRoute | RedirectRoute | undefined,
   Middlewares,
-  Injector
+  Injector,
 ];
 
 export type MatchedRoutes = Map<Path, RegisteredRoute>;

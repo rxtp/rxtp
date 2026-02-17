@@ -2,6 +2,7 @@
   "name": "@rxtp/core",
   "version": "0.1.8",
   "type": "module",
+  "main": "./build/src/index.js",
   "scripts": {
     "build": "tsc"
   },

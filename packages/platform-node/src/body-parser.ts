@@ -1,6 +1,6 @@
-import { Injectable, Middleware } from '@rxtp/core';
-import { Message } from './message.js';
-import { Observable, from, map, switchMap } from 'rxjs';
+import { Injectable, Middleware } from "@rxtp/core";
+import { Message } from "./message.js";
+import { Observable, from, map, switchMap } from "rxjs";
 
 @Injectable()
 export class NodeBodyParser implements Middleware {
@@ -10,15 +10,15 @@ export class NodeBodyParser implements Middleware {
         from(
           new Promise((resolve, reject) => {
             const data: Uint8Array[] = [];
-            message.request.on('data', (chunk: Uint8Array) => data.push(chunk));
-            message.request.on('end', () => {
+            message.request.on("data", (chunk: Uint8Array) => data.push(chunk));
+            message.request.on("end", () => {
               message.body = Buffer.concat(data).toString();
               resolve(message);
             });
-            message.request.on('error', (error) => reject(error));
-          })
-        ).pipe(map(() => message))
-      )
+            message.request.on("error", (error) => reject(error));
+          }),
+        ).pipe(map(() => message)),
+      ),
     );
   }
 }

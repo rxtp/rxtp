@@ -14,18 +14,21 @@ const RESPONSE_HEADERS: HttpHeaders = {
 };
 
 @Injectable()
-export class NodeRedirector implements Redirector {
+export class AzureRedirector implements Redirector {
   redirect(message$: Observable<[Message, Path]>): Observable<Message> {
     return message$.pipe(
       map(([message, path]) => {
-        if (!message.response.writableEnded) {
-          const url = new URL(path, message.url);
-          message.response.statusCode = RESPONSE_STATUS_CODE;
+        const ctxRes =
+          (message as any).context?.res || (message as any).response;
+        if (ctxRes) {
+          const url = new URL(path, (message as any).url);
+          ctxRes.status = RESPONSE_STATUS_CODE;
           RESPONSE_HEADERS["Location"] = url.toString();
-          for (const [key, value] of Object.entries(RESPONSE_HEADERS)) {
-            message.response.setHeader(key, value);
-          }
-          message.response.end();
+          ctxRes.headers = {
+            ...(ctxRes.headers || {}),
+            ...RESPONSE_HEADERS,
+          } as any;
+          ctxRes.body = "";
         }
         return message;
       }),

@@ -1,7 +1,7 @@
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 0' # Sunday at midnight
+    - cron: "0 0 * * 0" # Sunday at midnight
 
 jobs:
   update-lockfile:
@@ -14,6 +14,6 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/update-flake-lock@main
         with:
-          pr-title: 'chore(worksapce): update flake.lock'
+          pr-title: "chore(worksapce): update flake.lock"
           pr-labels: |
             dependencies

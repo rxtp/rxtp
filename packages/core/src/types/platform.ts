@@ -1,1 +1,1 @@
-export type PlatformID = 'node' | string;
+export type PlatformID = "node" | string;

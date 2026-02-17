@@ -7,14 +7,14 @@ import {
   Providers,
   Redirector,
   Route,
-} from '@rxtp/core';
-import { Message } from './message.js';
-import { NodeRedirector } from './redirector.js';
-import { NodeErrorHandler } from './error.js';
-import { NodeFinalizer } from './finalizer.js';
-import { IncomingMessage, RequestListener, ServerResponse } from 'http';
+} from "@rxtp/core";
+import { Message } from "./message.js";
+import { NodeRedirector } from "./redirector.js";
+import { NodeErrorHandler } from "./error.js";
+import { NodeFinalizer } from "./finalizer.js";
+import { IncomingMessage, RequestListener, ServerResponse } from "http";
 
-const PLATFORM_NODE_ID: PlatformID = 'node';
+const PLATFORM_NODE_ID: PlatformID = "node";
 
 const PLATFORM_NODE_PROVIDERS: Providers = [
   { provide: Redirector, useClass: NodeRedirector },
@@ -25,7 +25,7 @@ const PLATFORM_NODE_PROVIDERS: Providers = [
 
 export function createRequestListener(
   routes: Route[],
-  providers: Providers = []
+  providers: Providers = [],
 ): RequestListener {
   const platformNode = Platform.createPlatform(routes, [
     ...PLATFORM_NODE_PROVIDERS,

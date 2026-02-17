@@ -1,6 +1,6 @@
-import { Message } from './message';
-import { Injector } from './injector.js';
-import { catchError, of, OperatorFunction, switchMap } from 'rxjs';
+import { Message } from "./message";
+import { Injector } from "./injector.js";
+import { catchError, of, OperatorFunction, switchMap } from "rxjs";
 
 export abstract class ErrorHandler {
   abstract handleError: OperatorFunction<[Message, Error], Message>;
@@ -8,7 +8,7 @@ export abstract class ErrorHandler {
 
 export function handleError(
   message: Message,
-  injector: Injector
+  injector: Injector,
 ): OperatorFunction<Message, Message> {
   return (message$) =>
     message$.pipe(
@@ -17,9 +17,9 @@ export function handleError(
           .resolve(ErrorHandler)
           .pipe(
             switchMap((errorHandler) =>
-              errorHandler.handleError(of([message, error]))
-            )
-          )
-      )
+              errorHandler.handleError(of([message, error])),
+            ),
+          ),
+      ),
     );
 }

@@ -1,7 +1,7 @@
-import { Path } from './types/router.js';
-import { Message } from './message';
-import { Injector } from './injector.js';
-import { mergeMap, of, OperatorFunction, switchMap } from 'rxjs';
+import { Path } from "./types/router.js";
+import { Message } from "./message";
+import { Injector } from "./injector.js";
+import { mergeMap, of, OperatorFunction, switchMap } from "rxjs";
 
 export abstract class Redirector {
   abstract redirect: OperatorFunction<[Message, Path], Message>;
@@ -9,7 +9,7 @@ export abstract class Redirector {
 
 export function redirectMessage(
   path: Path,
-  injector: Injector
+  injector: Injector,
 ): OperatorFunction<Message, Message> {
   return (message$) =>
     message$.pipe(
@@ -17,8 +17,8 @@ export function redirectMessage(
         injector
           .resolve(Redirector)
           .pipe(
-            mergeMap((redirector) => redirector.redirect(of([message, path])))
-          )
-      )
+            mergeMap((redirector) => redirector.redirect(of([message, path]))),
+          ),
+      ),
     );
 }
