@@ -1,3 +1,0 @@
-#!/usr/bin/env sh
-
-cat $1 | npx commitlint --extends @commitlint/config-conventional

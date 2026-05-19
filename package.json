@@ -1,0 +1,23 @@
+{
+  "name": "@rxtp/core",
+  "version": "2.0.0",
+  "type": "commonjs",
+  "main": "./build/src/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rxtp/rxtp.git",
+    "directory": "packages/core"
+  },
+  "peerDependencies": {
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  }
+}

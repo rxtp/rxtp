@@ -1,64 +1,28 @@
 {
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-  outputs =
-    { nixpkgs, ... }:
-
+  outputs = { self, nixpkgs, ... }:
     let
-      platforms = nixpkgs.lib.platforms // {
-        supported = [
-          "aarch64-linux"
-          "aarch64-darwin"
-          "x86_64-darwin"
-          "x86_64-linux"
-        ];
-      };
-      eachPlatformMerge =
-        op: platforms: f:
-        builtins.foldl' (op f) { } (
-          if !builtins ? currentSystem || builtins.elem builtins.currentSystem platforms then
-            platforms
-          else
-            platforms ++ [ builtins.currentSystem ]
-        );
-      eachPlatform = eachPlatformMerge (
-        f: attrs: platform:
-        let
-          ret = f platform;
-        in
-        builtins.foldl' (
-          attrs: key:
-          attrs
-          // {
-            ${key} = (attrs.${key} or { }) // {
-              ${platform} = ret.${key};
-            };
-          }
-        ) attrs (builtins.attrNames ret)
-      );
-      eachSupportedPlatform = eachPlatform platforms.supported;
+      inherit (nixpkgs) lib;
+
+      systems = lib.intersectLists lib.systems.flakeExposed lib.platforms.linux;
+
+      forAllSystems = lib.genAttrs systems;
+
+      nixpkgsFor = forAllSystems (system: import nixpkgs {
+        inherit system;
+        overlays = [ self.outputs.overlays.default ];
+      });
     in
+    {
+      formatter = forAllSystems (system: nixpkgsFor.${system}.nixpkgs-fmt);
 
-    eachSupportedPlatform (
-      platform:
-      let
-        pkgs = import nixpkgs {
-          system = platform;
-          overlays = [
-            (final: prev: {
-              nodePackages = prev.nodePackages // {
-                rxtp-core = final.callPackage ./packages/core { };
-                rxtp-platform-azure = final.callPackage ./packages/platform-azure { };
-                rxtp-platform-node = final.callPackage ./packages/platform-node { };
-              };
-            })
-          ];
-        };
-      in
+      overlays.default = final: _: {
+        rxtp = final.callPackage ./default.nix { };
+      };
 
-      {
-        formatter = pkgs.nixfmt-tree;
-        packages = pkgs;
-      }
-    );
+      packages = forAllSystems (system: {
+        default = nixpkgsFor.${system}.rxtp;
+      });
+    };
 }
