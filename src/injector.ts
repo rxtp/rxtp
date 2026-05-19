@@ -34,7 +34,9 @@ export function Inject<T>(token: Token<T>): ParameterDecorator {
   };
 }
 
-export function Injectable(configuration?: InjectableMetadata): ClassDecorator {
+export function Injectable(
+  configuration: InjectableMetadata = { lifecycle: Lifecycle.Singleton },
+): ClassDecorator {
   return function (target) {
     defineMetadata<InjectableMetadata>(INJECTABLE_METADATA_KEY, configuration, target);
     const tokens = getMetadata<Token<unknown>[]>(PARAM_TYPES_METADATA_KEY, target);
@@ -108,10 +110,7 @@ export class Injector {
     throw new Error(`Ensure that class ${provider.provide.name} is decorated with @Injectable()`);
   }
 
-  private async _resolveFactoryProvider<T>(
-    provider: FactoryProvider<T>,
-    injector: Injector,
-  ): Promise<T> {
+  private async _resolveFactoryProvider<T>(provider: FactoryProvider<T>, injector: Injector) {
     const tokens: Token<unknown>[] = provider.deps ?? [];
     if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
       const instance = this._instances.get(provider.provide) as T;
@@ -137,7 +136,7 @@ export class Injector {
     return provider.useValue;
   }
 
-  private async _resolveToken<T>(token: InjectionToken<T>, injector: Injector): Promise<T> {
+  private async _resolveToken<T>(token: InjectionToken<T>, injector: Injector) {
     if (isDefined(token.provider)) {
       const provider: FactoryProvider<T> = {
         provide: token,
@@ -163,9 +162,10 @@ export class Injector {
       }
       return instance;
     }
+    throw new Error(`No provider found for token ${token.name}`);
   }
 
-  private async _resolve<T>(token: Token<T>, injector: Injector): Promise<T> {
+  private async _resolve<T>(token: Token<T>, injector: Injector) {
     if (token === Injector) return injector as T;
     const provider = this._providers.get(token) as ConfigurableProvider<T>;
     if (isDefined(provider)) {
