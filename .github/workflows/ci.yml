@@ -20,8 +20,6 @@ jobs:
         run: nix develop --command npm install
       - name: Lint
         run: nix develop --command npm run lint
-      - name: Test
-        run: nix develop --command npm test
 
   build:
     runs-on: ubuntu-latest

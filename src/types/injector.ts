@@ -1,8 +1,6 @@
-import { InjectionToken } from "../injector.js";
+import { InjectionToken } from '../injector.js';
 
-export interface Type<T> extends Function {
-  new (...args: unknown[]): T;
-}
+export type Type<T> = new (...args: unknown[]) => T;
 
 export type Factory<T> = (...args: unknown[]) => T;
 
@@ -35,10 +33,7 @@ export interface ValueProvider<T> {
   useValue: T;
 }
 
-export type ConfigurableProvider<T> =
-  | ClassProvider<T>
-  | FactoryProvider<T>
-  | ValueProvider<T>;
+export type ConfigurableProvider<T> = ClassProvider<T> | FactoryProvider<T> | ValueProvider<T>;
 
 export type Provider<T> = Type<T> | ConfigurableProvider<T>;
 

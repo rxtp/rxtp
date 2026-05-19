@@ -7,29 +7,28 @@ import {
   Providers,
   ValueProvider,
   InjectableMetadata,
-} from "./types/injector.js";
+} from './types/injector.js';
 import {
   isClassProvider,
   isConfigurableProvider,
   isFactoryProvider,
   isToken,
   isValueProvider,
-} from "./utilities/injector.js";
+} from './utilities/injector.js';
 import {
   defineMetadata,
   getMetadata,
   INJECT_METADATA_KEY,
   INJECTABLE_METADATA_KEY,
   PARAM_TYPES_METADATA_KEY,
-} from "./utilities/metadata.js";
-import { isDefined } from "./utilities/check.js";
-import { from, Observable } from "rxjs";
+} from './utilities/metadata.js';
+import { isDefined } from './utilities/check.js';
+import { from, Observable } from 'rxjs';
 
 export function Inject<T>(token: Token<T>): ParameterDecorator {
   return function (target, _, index) {
-    defineMetadata<void>(INJECT_METADATA_KEY, void 0, target);
-    const tokens =
-      getMetadata<Token<unknown>[]>(PARAM_TYPES_METADATA_KEY, target) ?? [];
+    defineMetadata<unknown>(INJECT_METADATA_KEY, void 0, target);
+    const tokens = getMetadata<Token<unknown>[]>(PARAM_TYPES_METADATA_KEY, target) ?? [];
     tokens[index] = token;
     defineMetadata<Token<unknown>[]>(PARAM_TYPES_METADATA_KEY, tokens, target);
   };
@@ -37,15 +36,8 @@ export function Inject<T>(token: Token<T>): ParameterDecorator {
 
 export function Injectable(configuration?: InjectableMetadata): ClassDecorator {
   return function (target) {
-    defineMetadata<InjectableMetadata>(
-      INJECTABLE_METADATA_KEY,
-      configuration,
-      target,
-    );
-    const tokens = getMetadata<Token<unknown>[]>(
-      PARAM_TYPES_METADATA_KEY,
-      target,
-    );
+    defineMetadata<InjectableMetadata>(INJECTABLE_METADATA_KEY, configuration, target);
+    const tokens = getMetadata<Token<unknown>[]>(PARAM_TYPES_METADATA_KEY, target);
     if (!isDefined(tokens)) {
       defineMetadata<Token<unknown>[]>(PARAM_TYPES_METADATA_KEY, [], target);
     }
@@ -54,10 +46,7 @@ export function Injectable(configuration?: InjectableMetadata): ClassDecorator {
 
 export class Injector {
   private readonly _instances = new Map<Token<unknown>, unknown>();
-  private readonly _providers = new Map<
-    Token<unknown>,
-    ConfigurableProvider<unknown>
-  >();
+  private readonly _providers = new Map<Token<unknown>, ConfigurableProvider<unknown>>();
 
   private _registerProviders(providers: Providers): void {
     for (const provider of providers) {
@@ -82,10 +71,7 @@ export class Injector {
     provider: ClassProvider<T>,
     injector: Injector,
   ): Promise<T> {
-    const tokens = getMetadata<Token<unknown>[]>(
-      PARAM_TYPES_METADATA_KEY,
-      provider.useClass,
-    );
+    const tokens = getMetadata<Token<unknown>[]>(PARAM_TYPES_METADATA_KEY, provider.useClass);
     if (isDefined(tokens)) {
       const injectableMetadata = getMetadata<InjectableMetadata>(
         INJECTABLE_METADATA_KEY,
@@ -94,10 +80,7 @@ export class Injector {
       if (isDefined(injectableMetadata)) {
         provider.lifecycle = injectableMetadata.lifecycle;
       }
-      if (
-        isDefined(provider.lifecycle) &&
-        provider.lifecycle === Lifecycle.Singleton
-      ) {
+      if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
         const instance = this._instances.get(provider.provide) as T;
         if (isDefined(instance)) {
           return instance;
@@ -105,36 +88,24 @@ export class Injector {
       }
       const dependencies = [];
       for (const token of tokens ?? []) {
-        if (token.name === "Object") {
-          throw new Error(
-            "Cannot resolve dependencies of a class with a parameter of type Object",
-          );
+        if (token.name === 'Object') {
+          throw new Error('Cannot resolve dependencies of a class with a parameter of type Object');
         }
         if (token === provider.provide) {
-          throw new Error(
-            "Cannot resolve dependencies of a class with a parameter of type itself",
-          );
+          throw new Error('Cannot resolve dependencies of a class with a parameter of type itself');
         }
         dependencies.push(await injector._resolve(token, injector));
       }
       const instance = new provider.useClass(...dependencies);
-      if (
-        isDefined(provider.lifecycle) &&
-        provider.lifecycle === Lifecycle.Singleton
-      ) {
+      if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
         this._instances.set(provider.provide, instance);
       }
-      if (
-        isDefined(provider.lifecycle) &&
-        provider.lifecycle === Lifecycle.Singleton
-      ) {
+      if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
         this._instances.set(provider.provide, instance);
       }
       return instance;
     }
-    throw new Error(
-      `Ensure that class ${provider.provide.name} is decorated with @Injectable()`,
-    );
+    throw new Error(`Ensure that class ${provider.provide.name} is decorated with @Injectable()`);
   }
 
   private async _resolveFactoryProvider<T>(
@@ -142,10 +113,7 @@ export class Injector {
     injector: Injector,
   ): Promise<T> {
     const tokens: Token<unknown>[] = provider.deps ?? [];
-    if (
-      isDefined(provider.lifecycle) &&
-      provider.lifecycle === Lifecycle.Singleton
-    ) {
+    if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
       const instance = this._instances.get(provider.provide) as T;
       if (isDefined(instance)) {
         return instance;
@@ -154,17 +122,12 @@ export class Injector {
     const dependencies = [];
     for (const token of tokens ?? []) {
       if (token === provider.provide) {
-        throw new Error(
-          "Cannot resolve dependencies of a class with a parameter of type itself",
-        );
+        throw new Error('Cannot resolve dependencies of a class with a parameter of type itself');
       }
       dependencies.push(await injector._resolve(token, injector));
     }
     const instance = await provider.useFactory(...dependencies);
-    if (
-      isDefined(provider.lifecycle) &&
-      provider.lifecycle === Lifecycle.Singleton
-    ) {
+    if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
       this._instances.set(provider.provide, instance);
     }
     return instance;
@@ -174,19 +137,13 @@ export class Injector {
     return provider.useValue;
   }
 
-  private async _resolveToken<T>(
-    token: InjectionToken<T>,
-    injector: Injector,
-  ): Promise<T> {
+  private async _resolveToken<T>(token: InjectionToken<T>, injector: Injector): Promise<T> {
     if (isDefined(token.provider)) {
       const provider: FactoryProvider<T> = {
         provide: token,
-        ...(token.provider as Omit<FactoryProvider<T>, "provide">),
+        ...(token.provider as Omit<FactoryProvider<T>, 'provide'>),
       };
-      if (
-        isDefined(provider.lifecycle) &&
-        provider.lifecycle === Lifecycle.Singleton
-      ) {
+      if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
         const instance = injector._instances.get(provider.provide) as T;
         if (isDefined(instance)) {
           return instance;
@@ -196,17 +153,12 @@ export class Injector {
       const dependencies = [];
       for (const token of tokens ?? []) {
         if (token === provider.provide) {
-          throw new Error(
-            "Cannot resolve dependencies of a class with a parameter of type itself",
-          );
+          throw new Error('Cannot resolve dependencies of a class with a parameter of type itself');
         }
         dependencies.push(await injector._resolve(token, injector));
       }
       const instance = await provider.useFactory(...dependencies);
-      if (
-        isDefined(provider.lifecycle) &&
-        provider.lifecycle === Lifecycle.Singleton
-      ) {
+      if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
         injector._instances.set(provider.provide, instance);
       }
       return instance;
@@ -241,6 +193,6 @@ export class Injector {
 export class InjectionToken<T> {
   constructor(
     public readonly name: string,
-    public readonly provider?: Omit<FactoryProvider<T>, "provide">,
-  ) { }
+    public readonly provider?: Omit<FactoryProvider<T>, 'provide'>,
+  ) {}
 }
