@@ -102,9 +102,6 @@ export class Injector {
       if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
         this._instances.set(provider.provide, instance);
       }
-      if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
-        this._instances.set(provider.provide, instance);
-      }
       return instance;
     }
     throw new Error(`Ensure that class ${provider.provide.name} is decorated with @Injectable()`);

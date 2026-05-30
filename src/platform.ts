@@ -2,7 +2,7 @@ import { Injector } from './injector.js';
 import { handleError } from './error.js';
 import { handleMessage } from './handler.js';
 import { mergeMap, of, Subject } from 'rxjs';
-import { Providers } from './types/injector';
+import { Providers } from './types/injector.js';
 
 export class Platform<M> {
   readonly message = new Subject<M>();

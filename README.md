@@ -3,8 +3,14 @@
 > [!WARNING]
 > Work in progress - not ready for production
 
-```ocaml
-Build With Nix
+## Install
+
+> [!NOTE]
+> RXTP is distributed directly via this repository to emphasize transparency, autonomy, and source engagement over reliance on third-party registries. This approach allows users to review, audit, and tailor the library to their needs, while avoiding potential risks or restrictions imposed by centralized package platforms.
+
+```bash
+# Install the latest version from GitHub
+npm install github:rxtp/rxtp
 ```
 
 #### Example Application
@@ -12,13 +18,20 @@ Build With Nix
 ```typescript
 import "reflect-metadata";
 
-import { Handler, ErrorHandler, Injectable, Platform, Providers, MessageAndError } from "./src";
+import { Handler, ErrorHandler, Injectable, Platform, Providers, MessageAndError } from "@rxtp/core";
 import { tap, map, OperatorFunction } from "rxjs";
 import * as http from "http";
 
 const PORT = Number(process.env.PORT) || 3000;
 
 type ApplicationMessage = { res: http.ServerResponse; req: http.IncomingMessage };
+
+@Injectable()
+class LoggerService {
+  log(message: string) {
+    console.log(`[Log]: ${message}`);
+  }
+}
 
 @Injectable()
 class ApplicationErrorHandler extends ErrorHandler<ApplicationMessage> {
@@ -36,9 +49,14 @@ class ApplicationErrorHandler extends ErrorHandler<ApplicationMessage> {
 
 @Injectable()
 class ApplicationHandler extends Handler<ApplicationMessage> {
+  constructor(private readonly logger: LoggerService) {
+    super();
+  }
+
   readonly handle: OperatorFunction<ApplicationMessage, ApplicationMessage> = (message$) =>
     message$.pipe(
       tap(({ res }) => {
+        this.logger.log("Handling request...");
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/plain");
         res.end("hello");
@@ -47,14 +65,16 @@ class ApplicationHandler extends Handler<ApplicationMessage> {
 }
 
 const providers: Providers = [
+  LoggerService,
   { provide: Handler, useClass: ApplicationHandler },
   { provide: ErrorHandler, useClass: ApplicationErrorHandler },
 ];
 
-const { platform } = Platform.createPlatform(providers);
+const { platform } = Platform.createPlatform<ApplicationMessage>(providers);
 
-const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => platform.message.next({ req, res }));
-const _ = server.listen(PORT, () => console.log(`Platform-backed server listening: http://localhost:${PORT}`));
+const server = http.createServer((req, res) => platform.message.next({ req, res }));
+
+server.listen(PORT, () => console.log(`Platform-backed server listening: http://localhost:${PORT}`));
 
 ```
 
