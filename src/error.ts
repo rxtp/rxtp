@@ -1,4 +1,4 @@
-import { Injector } from './injector.js';
+import { Injector } from './injector';
 import { catchError, of, OperatorFunction, switchMap } from 'rxjs';
 
 export interface MessageAndError<M> {

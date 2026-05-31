@@ -5,7 +5,7 @@
   },
   "include": [
     "src/**/*.ts",
-    "examples/**/*.ts",
+    "example.ts",
     "eslint.config.ts",
     "jest.config.ts"
   ],

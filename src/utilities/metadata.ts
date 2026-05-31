@@ -1,4 +1,4 @@
-import { isDefined, isFunction } from './check.js';
+import { isDefined, isFunction } from './check';
 
 export const PARAM_TYPES_METADATA_KEY = 'design:paramtypes';
 

@@ -1,6 +1,9 @@
-import { InjectionToken } from '../injector.js';
+import { InjectionToken } from '../injector';
 
-export type Type<T> = new (...args: unknown[]) => T;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyType = any;
+
+export type Type<T = AnyType> = new (...args: AnyType[]) => T;
 
 export type Factory<T> = (...args: unknown[]) => T;
 
@@ -9,6 +12,7 @@ export type Token<T> = Type<T> | InjectionToken<T>;
 export enum Lifecycle {
   Transient,
   Singleton,
+  Message, // New: Message-scoped providers
 }
 
 export interface InjectableMetadata {
@@ -35,6 +39,6 @@ export interface ValueProvider<T> {
 
 export type ConfigurableProvider<T> = ClassProvider<T> | FactoryProvider<T> | ValueProvider<T>;
 
-export type Provider<T> = Type<T> | ConfigurableProvider<T>;
+export type Provider<T = AnyType> = Type<T> | ConfigurableProvider<T>;
 
-export type Providers = Provider<unknown>[];
+export type Providers = Provider[];

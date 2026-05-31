@@ -5,9 +5,9 @@ import {
   Token,
   Provider,
   ValueProvider,
-} from '../types/injector.js';
-import { InjectionToken } from '../injector.js';
-import { isDefined, isObject } from './check.js';
+} from '../types/injector';
+import { InjectionToken } from '../injector';
+import { isDefined, isObject } from './check';
 
 export function isToken<T>(token: Token<T>): token is InjectionToken<T> {
   return isDefined(token) && isObject(token) && token instanceof InjectionToken;

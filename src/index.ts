@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 
-export * from './types/injector.js';
+export * from './types/injector';
 
-export * from './error.js';
-export * from './handler.js';
-export * from './injector.js';
-export * from './platform.js';
+export * from './error';
+export * from './handler';
+export * from './injector';
+export * from './platform';

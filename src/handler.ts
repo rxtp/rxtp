@@ -1,4 +1,4 @@
-import { Injector } from './injector.js';
+import { Injector } from './injector';
 import { mergeMap, of, OperatorFunction, switchMap } from 'rxjs';
 
 export abstract class Handler<M> {

@@ -7,22 +7,22 @@ import {
   Providers,
   ValueProvider,
   InjectableMetadata,
-} from './types/injector.js';
+} from './types/injector';
 import {
   isClassProvider,
   isConfigurableProvider,
   isFactoryProvider,
   isToken,
   isValueProvider,
-} from './utilities/injector.js';
+} from './utilities/injector';
 import {
   defineMetadata,
   getMetadata,
   INJECT_METADATA_KEY,
   INJECTABLE_METADATA_KEY,
   PARAM_TYPES_METADATA_KEY,
-} from './utilities/metadata.js';
-import { isDefined } from './utilities/check.js';
+} from './utilities/metadata';
+import { isDefined } from './utilities/check';
 import { from, Observable } from 'rxjs';
 
 export function Inject<T>(token: Token<T>): ParameterDecorator {
@@ -49,16 +49,54 @@ export function Injectable(
 export class Injector {
   private readonly _instances = new Map<Token<unknown>, unknown>();
   private readonly _providers = new Map<Token<unknown>, ConfigurableProvider<unknown>>();
+  private readonly _messageInstances?: Map<Token<unknown>, unknown>;
+
+  // If _messageInstances is provided, this is a message-scoped injector
+  constructor(messageInstances?: Map<Token<unknown>, unknown>, parent?: Injector) {
+    if (messageInstances) {
+      this._messageInstances = messageInstances;
+      if (parent) {
+        // Copy providers from parent
+        for (const [token, provider] of parent._providers.entries()) {
+          this._providers.set(token, provider);
+        }
+        // Copy singleton instances from parent
+        for (const [token, instance] of parent._instances.entries()) {
+          this._instances.set(token, instance);
+        }
+      }
+    }
+  }
 
   private _registerProviders(providers: Providers): void {
     for (const provider of providers) {
       if (isConfigurableProvider(provider)) {
         this._providers.set(provider.provide, provider);
-      } else {
-        this._providers.set(provider, {
-          provide: provider,
-          useClass: provider,
-        });
+      } else if (typeof provider === 'function') {
+        // Auto-bind Handler and ErrorHandler subclasses using base class constructor as token
+        let parent = Object.getPrototypeOf(provider.prototype);
+        while (parent && parent.constructor && parent.constructor !== Object) {
+          if (parent.constructor.name === 'Handler') {
+            this._providers.set(parent.constructor, {
+              provide: parent.constructor,
+              useClass: provider,
+            });
+            break;
+          } else if (parent.constructor.name === 'ErrorHandler') {
+            this._providers.set(parent.constructor, {
+              provide: parent.constructor,
+              useClass: provider,
+            });
+            break;
+          }
+          parent = Object.getPrototypeOf(parent);
+        }
+        if (!parent || parent.constructor === Object) {
+          this._providers.set(provider, {
+            provide: provider,
+            useClass: provider,
+          });
+        }
       }
     }
   }
@@ -67,6 +105,11 @@ export class Injector {
     const injector = new Injector();
     injector._registerProviders(providers);
     return injector;
+  }
+
+  // Create a child injector for a single message
+  createMessageInjector(): Injector {
+    return new Injector(new Map<Token<unknown>, unknown>(), this);
   }
 
   private async _resolveClassProvider<T>(
@@ -82,10 +125,18 @@ export class Injector {
       if (isDefined(injectableMetadata)) {
         provider.lifecycle = injectableMetadata.lifecycle;
       }
-      if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
-        const instance = this._instances.get(provider.provide) as T;
-        if (isDefined(instance)) {
-          return instance;
+      if (isDefined(provider.lifecycle)) {
+        if (provider.lifecycle === Lifecycle.Singleton) {
+          const instance = this._instances.get(provider.provide) as T;
+          if (isDefined(instance)) {
+            return instance;
+          }
+        }
+        if (provider.lifecycle === Lifecycle.Message && this._messageInstances) {
+          const instance = this._messageInstances.get(provider.provide) as T;
+          if (isDefined(instance)) {
+            return instance;
+          }
         }
       }
       const dependencies = [];
@@ -99,8 +150,13 @@ export class Injector {
         dependencies.push(await injector._resolve(token, injector));
       }
       const instance = new provider.useClass(...dependencies);
-      if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
-        this._instances.set(provider.provide, instance);
+      if (isDefined(provider.lifecycle)) {
+        if (provider.lifecycle === Lifecycle.Singleton) {
+          this._instances.set(provider.provide, instance);
+        }
+        if (provider.lifecycle === Lifecycle.Message && this._messageInstances) {
+          this._messageInstances.set(provider.provide, instance);
+        }
       }
       return instance;
     }
@@ -109,10 +165,18 @@ export class Injector {
 
   private async _resolveFactoryProvider<T>(provider: FactoryProvider<T>, injector: Injector) {
     const tokens: Token<unknown>[] = provider.deps ?? [];
-    if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
-      const instance = this._instances.get(provider.provide) as T;
-      if (isDefined(instance)) {
-        return instance;
+    if (isDefined(provider.lifecycle)) {
+      if (provider.lifecycle === Lifecycle.Singleton) {
+        const instance = this._instances.get(provider.provide) as T;
+        if (isDefined(instance)) {
+          return instance;
+        }
+      }
+      if (provider.lifecycle === Lifecycle.Message && this._messageInstances) {
+        const instance = this._messageInstances.get(provider.provide) as T;
+        if (isDefined(instance)) {
+          return instance;
+        }
       }
     }
     const dependencies = [];
@@ -123,8 +187,13 @@ export class Injector {
       dependencies.push(await injector._resolve(token, injector));
     }
     const instance = await provider.useFactory(...dependencies);
-    if (isDefined(provider.lifecycle) && provider.lifecycle === Lifecycle.Singleton) {
-      this._instances.set(provider.provide, instance);
+    if (isDefined(provider.lifecycle)) {
+      if (provider.lifecycle === Lifecycle.Singleton) {
+        this._instances.set(provider.provide, instance);
+      }
+      if (provider.lifecycle === Lifecycle.Message && this._messageInstances) {
+        this._messageInstances.set(provider.provide, instance);
+      }
     }
     return instance;
   }

@@ -1,19 +1,22 @@
-import { Injector } from './injector.js';
-import { handleError } from './error.js';
-import { handleMessage } from './handler.js';
+import { Injector } from './injector';
+import { handleError } from './error';
+import { handleMessage } from './handler';
 import { mergeMap, of, Subject } from 'rxjs';
-import { Providers } from './types/injector.js';
+import { Providers } from './types/injector';
 
 export class Platform<M> {
   readonly message = new Subject<M>();
 
-  readonly message$ = this.message
-    .asObservable()
-    .pipe(
-      mergeMap((message) =>
-        of(message).pipe(handleMessage<M>(this._injector), handleError<M>(message, this._injector)),
-      ),
-    );
+  readonly message$ = this.message.asObservable().pipe(
+    mergeMap((message) => {
+      // Create a message-scoped injector for each message
+      const messageInjector = this._injector.createMessageInjector();
+      return of(message).pipe(
+        handleMessage<M>(messageInjector),
+        handleError<M>(message, messageInjector),
+      );
+    }),
+  );
 
   constructor(private readonly _injector: Injector) {}
 
