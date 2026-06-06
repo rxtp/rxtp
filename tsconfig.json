@@ -9,12 +9,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": [
-      "jest",
-      "node"
-    ],
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    "types": [ "node" ],
     "useDefineForClassFields": false
   },
   "include": [
@@ -24,6 +19,5 @@
     "node_modules",
     "dist",
     "examples",
-    "src/**/*.test.ts"
   ]
 }

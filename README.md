@@ -1,88 +1,102 @@
 # RXTP
 
-> [!WARNING]
-> Work in progress - not ready for production
+A minimal, reactive-first message and event framework for TypeScript, powered by RxJS and a lightweight, delegation-based DI system.
 
-## Install
+## Core Concepts
 
-> [!NOTE]
-> RXTP is distributed directly via this repository to emphasize transparency, autonomy, and source engagement over reliance on third-party registries. This approach allows users to review, audit, and tailor the library to their needs, while avoiding potential risks or restrictions imposed by centralized package platforms.
+- **MessageBus**: The central hub for publishing and subscribing to events.
+- **Envelope**: A wrapper for every message that includes a scoped DI injector.
+- **Injector**: A lightweight, hierarchy-aware dependency injection system (no decorators or `reflect-metadata` required).
+- **Handlers**: Simple classes or functions that process messages within the RxJS pipeline.
+
+## Installation
 
 ```bash
-# Install the latest version from GitHub
+# This library is designed to be lightweight and included directly or via git
 npm install github:rxtp/rxtp
 ```
 
-#### Example Application
+## Example
 
 ```typescript
-import "reflect-metadata";
+import { Injector, MessageBus, MessageHandler, useHandler, filterType } from "@rxtp/core";
+import { of, tap, mergeMap, catchError, EMPTY } from "rxjs";
 
-import { Handler, ErrorHandler, Injectable, Platform, Providers, MessageAndError } from "@rxtp/core";
-import { tap, map, OperatorFunction } from "rxjs";
-import * as http from "http";
+// 1. Define a Service
+class AlertService {
+  notify(msg: string) { console.log(`[Alert] ${msg}`); }
+}
 
-const PORT = Number(process.env.PORT) || 3000;
+// 2. Define a Handler
+class OrderHandler implements MessageHandler<OrderEvent> {
+  constructor(private alert: AlertService) {}
 
-type ApplicationMessage = { res: http.ServerResponse; req: http.IncomingMessage };
-
-@Injectable()
-class LoggerService {
-  log(message: string) {
-    console.log(`[Log]: ${message}`);
+  handle(event: OrderEvent) {
+    if (event.amount < 0) throw new Error("Invalid amount");
+    return of(event).pipe(tap(() => console.log("Order processed")));
   }
 }
 
-@Injectable()
-class ApplicationErrorHandler extends ErrorHandler<ApplicationMessage> {
-  readonly handleError: OperatorFunction<MessageAndError<ApplicationMessage>, ApplicationMessage> = (messageAndError$) =>
-    messageAndError$.pipe(
-      tap(({ message, error }) => {
-        console.error("Error:", error);
-        message.res.statusCode = 500;
-        message.res.setHeader("Content-Type", "text/plain");
-        message.res.end("Internal error");
-      }),
-      map(({ message }) => message),
-    );
-}
+// 3. Setup DI
+const injector = new Injector();
+injector.register(AlertService, () => new AlertService());
+injector.register(OrderHandler, (i) => new OrderHandler(i.get(AlertService)));
 
-@Injectable()
-class ApplicationHandler extends Handler<ApplicationMessage> {
-  constructor(private readonly logger: LoggerService) {
-    super();
-  }
+// 4. Initialize Bus
+const bus = new MessageBus<OrderEvent>(injector);
 
-  readonly handle: OperatorFunction<ApplicationMessage, ApplicationMessage> = (message$) =>
-    message$.pipe(
-      tap(({ res }) => {
-        this.logger.log("Handling request...");
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "text/plain");
-        res.end("hello");
-      }),
-    );
-}
+// 5. Connect with Resilience
+bus.stream$.pipe(
+  filterType('ORDER_CREATED'),
+  mergeMap(envelope => of(envelope).pipe(
+    useHandler(OrderHandler),
+    catchError(err => {
+      envelope.injector.get(AlertService).notify(err.message);
+      return EMPTY;
+    })
+  ))
+).subscribe();
 
-const providers: Providers = [
-  LoggerService,
-  { provide: Handler, useClass: ApplicationHandler },
-  { provide: ErrorHandler, useClass: ApplicationErrorHandler },
-];
-
-const { platform } = Platform.createPlatform<ApplicationMessage>(providers);
-
-const server = http.createServer((req, res) => platform.message.next({ req, res }));
-
-server.listen(PORT, () => console.log(`Platform-backed server listening: http://localhost:${PORT}`));
-
+bus.publish({ type: 'ORDER_CREATED', amount: -10 });
 ```
 
-```json
-{
-  "compilerOptions": {
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
-  }
+## Advanced Usage
+
+### Application-Level Deduplication
+
+Since the framework is just RxJS, you can easily add complex patterns like in-flight deduplication:
+
+```typescript
+function dedupeBy<M, K, R>(
+  keySelector: (message: M) => K,
+  pipeline: (source$: Observable<Envelope<M>>) => Observable<R>,
+): OperatorFunction<Envelope<M>, R> {
+  const inFlight = new Set<K>();
+
+  return mergeMap((envelope) => {
+    const key = keySelector(envelope.message);
+    if (inFlight.has(key)) return EMPTY;
+
+    inFlight.add(key);
+    return pipeline(of(envelope)).pipe(
+      finalize(() => inFlight.delete(key))
+    );
+  });
 }
+
+// Usage in pipeline
+bus.stream$.pipe(
+  filterType('DATA_SYNC'),
+  dedupeBy(msg => msg.resourceId, ev$ => ev$.pipe(
+    useHandler(SyncHandler)
+  ))
+).subscribe();
 ```
+
+## Why RXTP?
+
+- **Zero Metadata**: No `reflect-metadata` or `experimentalDecorators` required. Works in any TypeScript environment.
+- **Performance**: Child injectors use **delegation** rather than copying providers, making per-message scoping extremely fast and memory-efficient.
+- **Stream Isolation**: By combining `mergeMap` with inner `catchError`, a single failing message won't kill your entire application bus.
+- **Type Safety**: Built-in `filterType` operator provides full TypeScript narrowing for union-type events.
+- **Explicit**: Dependency trees are defined via simple factory functions, making them easy to trace and test.
