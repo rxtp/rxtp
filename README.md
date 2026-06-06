@@ -1,6 +1,6 @@
 # RXTP
 
-A minimal, reactive-first message and event framework for TypeScript, powered by RxJS and a lightweight, delegation-based DI system.
+Reactive-first message and event framework for TypeScript, powered by RxJS and a lightweight, delegation-based DI system.
 
 ## Core Concepts
 
