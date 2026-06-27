@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.actor == github.repository_owner
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.actor == github.repository_owner
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
