@@ -82,8 +82,7 @@ interface DataSyncRequested {
 type AppEvent = OrderCreated | PaymentProcessed | DataSyncRequested;
 
 type ProcessResult =
-  | { status: 'COMPLETED'; id: string }
-  | { status: 'REJECTED'; id: string; reason: string };
+  { status: 'COMPLETED'; id: string } | { status: 'REJECTED'; id: string; reason: string };
 
 class OrdersRepository {
   private orders = new Map<string, { id: string; amount: number }>();
@@ -126,15 +125,15 @@ class OrderHandler implements MessageHandler<OrderCreated, ProcessResult> {
     private ordersRepo: OrdersRepository,
   ) {}
 
-  handle(event: OrderCreated) {
-    this.logger.log(`Processing Order: ${event.orderId} ($${event.amount})`, 'OrderHandler');
+  handle(event: OrderCreated): Observable<ProcessResult> {
+    this.logger.log(`Processing Order: ${event.orderId}`, 'OrderHandler');
 
     if (event.amount < 0) {
       return of({ status: 'REJECTED', id: event.orderId, reason: 'Negative amount' } as const);
     }
 
-    return timer(500).pipe(
-      mergeMap(() => this.ordersRepo.save$({ id: event.orderId, amount: event.amount })),
+    return this.ordersRepo.save$({ id: event.orderId, amount: event.amount }).pipe(
+      delay(500),
       tap(() => this.analytics.track('order_processed', { id: event.orderId })),
       map(() => ({ status: 'COMPLETED', id: event.orderId }) as const),
     );
@@ -209,22 +208,11 @@ console.log('--- System Online ---\n');
 bus.stream$
   .pipe(
     filterType('ORDER_CREATED'),
-    mergeMap((envelope) =>
-      of(envelope).pipe(
-        useHandler(OrderHandler),
-        tap((result) => {
-          if (result.status === 'REJECTED') {
-            envelope.injector
-              .get(Logger)
-              .log(`Order ${result.id} rejected: ${result.reason}`, 'Pipeline');
-          }
-        }),
-        catchError((err) => {
-          envelope.injector.get(AlertService).notifyAdmin(err, 'Orders');
-          return EMPTY;
-        }),
-      ),
-    ),
+    useHandler(OrderHandler),
+    catchError((e) => {
+      console.error(e);
+      return EMPTY;
+    }),
   )
   .subscribe();
 
@@ -236,10 +224,10 @@ bus.stream$
       of(envelope).pipe(
         useHandler(PaymentHandler),
         tap((result) => {
-          if (result.status === 'REJECTED') {
+          if (result.message.status === 'REJECTED') {
             envelope.injector
               .get(Logger)
-              .log(`Payment ${result.id} rejected: ${result.reason}`, 'Pipeline');
+              .log(`Payment ${result.message.id} rejected: ${result.message.reason}`, 'Pipeline');
           }
         }),
         catchError((err) => {
@@ -261,7 +249,7 @@ bus.stream$
       (ev$) => ev$.pipe(useHandler(SyncHandler)),
     ),
   )
-  .subscribe((res) => console.log(`[Pipeline] Sync ${res.id} finished`));
+  .subscribe((res) => console.log(`[Pipeline] Sync ${res.message.id} finished`));
 
 /**
  * 7. Simulate Real-world Events
@@ -272,28 +260,3 @@ bus.publish({ type: 'ORDER_CREATED', orderId: 'ORD-123', amount: 99.99 });
 setTimeout(() => {
   bus.publish({ type: 'PAYMENT_PROCESSED', orderId: 'ORD-123', status: 'SUCCESS', amount: 99.99 });
 }, 1000);
-
-// Simulate failures
-setTimeout(() => {
-  console.log('\n--- Simulating Failures ---');
-  // 1. Failed Order (Negative Amount)
-  bus.publish({ type: 'ORDER_CREATED', orderId: 'ORD-ERR', amount: -50 });
-  // 2. Failed Payment (Unknown Order ID)
-  bus.publish({
-    type: 'PAYMENT_PROCESSED',
-    orderId: 'ORD-UNKNOWN',
-    status: 'SUCCESS',
-    amount: 49.99,
-  });
-  // 3. Failed Payment (Declined)
-  bus.publish({ type: 'ORDER_CREATED', orderId: 'ORD-999', amount: 49.99 });
-  setTimeout(() => {
-    bus.publish({ type: 'PAYMENT_PROCESSED', orderId: 'ORD-999', status: 'FAILED', amount: 49.99 });
-  }, 1000);
-
-  // 4. Deduplication Example
-  console.log('\n--- Testing Deduplication ---');
-  bus.publish({ type: 'DATA_SYNC', resourceId: 'USER_TABLE' });
-  bus.publish({ type: 'DATA_SYNC', resourceId: 'USER_TABLE' }); // Ignored
-  bus.publish({ type: 'DATA_SYNC', resourceId: 'USER_TABLE' }); // Ignored
-}, 2500);

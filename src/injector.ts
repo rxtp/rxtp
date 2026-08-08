@@ -1,9 +1,11 @@
-export type Token<T> = string | symbol | (new (...args: unknown[]) => T);
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export type Token<T> = string | symbol | (new (...args: any[]) => T);
 export type Factory<T> = (injector: Injector) => T;
+export type Instance<T> = T;
 
 export class Injector {
   private providers = new Map<Token<unknown>, Factory<unknown>>();
-  private instances = new Map<Token<unknown>, unknown>();
+  private instances = new Map<Token<unknown>, Instance<unknown>>();
 
   constructor(private parent?: Injector) {}
 
@@ -20,11 +22,11 @@ export class Injector {
     if (factory) {
       const instance = factory(this) as T;
       this.instances.set(token, instance);
-      return instance;
+      return instance as T;
     }
 
     if (this.parent) {
-      return this.parent.get(token);
+      return this.parent.get(token) as T;
     }
 
     throw new Error(`No provider for ${typeof token === 'function' ? token.name : String(token)}`);

@@ -1,4 +1,4 @@
-import { filter, mergeMap, OperatorFunction } from 'rxjs';
+import { filter, map, mergeMap, OperatorFunction } from 'rxjs';
 import { Envelope } from './envelope';
 import { Token } from './injector';
 import { MessageHandler } from './handler';
@@ -13,9 +13,9 @@ export function filterType<M extends { type: string }, T extends M['type']>(
 
 export function useHandler<M, R>(
   token: Token<MessageHandler<M, R>>,
-): OperatorFunction<Envelope<M>, R> {
+): OperatorFunction<Envelope<M>, Envelope<R>> {
   return mergeMap((envelope) => {
     const handler = envelope.injector.get(token);
-    return handler.handle(envelope.message);
+    return handler.handle(envelope.message).pipe(map((r) => ({ ...envelope, message: r })));
   });
 }
